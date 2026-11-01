@@ -4,17 +4,30 @@ import 'package:flutter/material.dart';
 ///
 /// Users can interact with this widget to provide a rating.
 class AnimatedRatingStars extends StatefulWidget {
-  /// The initial rating for the widget.
+  /// The rating shown when the widget is first built.
+  ///
+  /// It is clamped into the [minRating]...[maxRating] range. This value is
+  /// read once, when the state is created; later changes to it are ignored so
+  /// that a rebuild cannot discard a rating the user has already chosen.
   final double initialRating;
 
-  /// The minimum rating value.
+  /// The lowest rating the user can select.
+  ///
+  /// Taps that would land below this value are raised to it.
   final double minRating;
 
-  /// The maximum rating value.
+  /// The highest rating the user can select.
+  ///
+  /// One star is drawn per whole unit, so a [maxRating] of `5.0` draws five.
   final double maxRating;
 
   /// The color for filled stars.
   final Color filledColor;
+
+  /// The color for half-filled stars.
+  ///
+  /// Defaults to [filledColor] when null.
+  final Color? halfFilledColor;
 
   /// The color for empty stars.
   final Color emptyColor;
@@ -28,25 +41,24 @@ class AnimatedRatingStars extends StatefulWidget {
   /// The icon used for empty stars.
   final IconData emptyIcon;
 
-  /// A callback function called when the rating changes.
-  final Function(double) onChanged;
+  /// Called with the new rating whenever the user taps a star.
+  final ValueChanged<double> onChanged;
 
-  // New properties
-
-  /// Determines whether to display the rating value.
+  /// Whether to draw the current rating as text beside the stars.
   final bool displayRatingValue;
 
-  /// Determines whether to enable interactive tooltips.
+  /// The text style for the rating value drawn when [displayRatingValue] is
+  /// set.
+  ///
+  /// Defaults to the surrounding text style sized against [starSize] and
+  /// tinted with [filledColor].
+  final TextStyle? ratingValueStyle;
+
+  /// Whether tapping the currently selected star drops it to a half star.
+  ///
+  /// This also governs whether half stars are drawn at all: with it unset, a
+  /// rating of `2.5` renders as two filled stars.
   final bool interactiveTooltips;
-
-  /// The custom icon for filled stars.
-  final IconData customFilledIcon;
-
-  /// The custom icon for half-filled stars.
-  final IconData customHalfFilledIcon;
-
-  /// The custom icon for empty stars.
-  final IconData customEmptyIcon;
 
   /// The size of each star.
   final double starSize;
@@ -67,16 +79,15 @@ class AnimatedRatingStars extends StatefulWidget {
     this.minRating = 0.0,
     this.maxRating = 5.0,
     this.filledColor = Colors.amber,
+    this.halfFilledColor,
     this.emptyColor = Colors.grey,
     this.filledIcon = Icons.star,
     this.halfFilledIcon = Icons.star_half,
     this.emptyIcon = Icons.star_border,
     required this.onChanged,
     this.displayRatingValue = true,
+    this.ratingValueStyle,
     this.interactiveTooltips = false,
-    required this.customFilledIcon,
-    required this.customHalfFilledIcon,
-    required this.customEmptyIcon,
     this.starSize = 30.0,
     this.animationDuration = const Duration(milliseconds: 300),
     this.animationCurve = Curves.easeInOut,
@@ -88,46 +99,79 @@ class AnimatedRatingStars extends StatefulWidget {
 }
 
 class _AnimatedRatingStarsState extends State<AnimatedRatingStars> {
-  double _rating = 0.0;
+  late double _rating;
 
   @override
   void initState() {
     super.initState();
-    _rating = widget.initialRating;
+    _rating = _clamped(widget.initialRating);
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedRatingStars oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // A widened or narrowed range can leave the current rating outside it.
+    if (widget.minRating != oldWidget.minRating ||
+        widget.maxRating != oldWidget.maxRating) {
+      _rating = _clamped(_rating);
+    }
+  }
+
+  /// [rating] held inside the configured range.
+  double _clamped(double rating) =>
+      rating.clamp(widget.minRating, widget.maxRating).toDouble();
+
+  void _handleTap(int index) {
+    if (widget.readOnly) return;
+
+    final selectedRating = index + 1.0;
+    // Tapping the star that is already selected drops it to a half star.
+    final tapped = _rating == selectedRating && widget.interactiveTooltips
+        ? selectedRating - 0.5
+        : selectedRating;
+
+    setState(() => _rating = _clamped(tapped));
+    widget.onChanged(_rating);
   }
 
   @override
   Widget build(BuildContext context) {
+    final stars = List.generate(widget.maxRating.toInt(), (index) {
+      return GestureDetector(
+        onTap: () => _handleTap(index),
+        child: AnimatedStar(
+          filled: _rating >= index + 1,
+          halfFilled: widget.interactiveTooltips && _rating == index + 0.5,
+          filledColor: widget.filledColor,
+          halfFilledColor: widget.halfFilledColor,
+          emptyColor: widget.emptyColor,
+          filledIcon: widget.filledIcon,
+          halfFilledIcon: widget.halfFilledIcon,
+          emptyIcon: widget.emptyIcon,
+          starSize: widget.starSize,
+          animationDuration: widget.animationDuration,
+          animationCurve: widget.animationCurve,
+        ),
+      );
+    });
+
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(widget.maxRating.toInt(), (index) {
-        return GestureDetector(
-          onTap: () {
-            if (!widget.readOnly) {
-              double selectedRating = index.toDouble() + 1.0;
-              if (_rating == selectedRating && widget.interactiveTooltips) {
-                _rating -= 0.5; // Toggle half-star state
-              } else {
-                _rating = selectedRating;
-              }
-              widget.onChanged(_rating);
-              setState(() {}); // Rebuild widget to reflect changes
-            }
-          },
-          child: AnimatedStar(
-            filled: _rating >= index + 1,
-            halfFilled: widget.interactiveTooltips && _rating == index + 0.5,
-            filledColor: widget.filledColor,
-            emptyColor: widget.emptyColor,
-            filledIcon: widget.customFilledIcon,
-            halfFilledIcon: widget.customHalfFilledIcon,
-            emptyIcon: widget.customEmptyIcon,
-            starSize: widget.starSize,
-            animationDuration: widget.animationDuration,
-            animationCurve: widget.animationCurve,
+      children: <Widget>[
+        ...stars,
+        if (widget.displayRatingValue) ...<Widget>[
+          SizedBox(width: widget.starSize / 4.0),
+          Text(
+            _rating.toStringAsFixed(1),
+            style: widget.ratingValueStyle ??
+                DefaultTextStyle.of(context).style.copyWith(
+                      fontSize: widget.starSize * 0.6,
+                      color: widget.filledColor,
+                    ),
           ),
-        );
-      }),
+        ],
+      ],
     );
   }
 }
@@ -138,10 +182,17 @@ class AnimatedStar extends StatefulWidget {
   final bool filled;
 
   /// Determines whether the star is half-filled.
+  ///
+  /// Ignored while [filled] is set.
   final bool halfFilled;
 
   /// The color for filled stars.
   final Color filledColor;
+
+  /// The color for half-filled stars.
+  ///
+  /// Defaults to [filledColor] when null.
+  final Color? halfFilledColor;
 
   /// The color for empty stars.
   final Color emptyColor;
@@ -170,6 +221,7 @@ class AnimatedStar extends StatefulWidget {
     this.filled = false,
     this.halfFilled = false,
     this.filledColor = Colors.amber,
+    this.halfFilledColor,
     this.emptyColor = Colors.grey,
     this.filledIcon = Icons.star,
     this.halfFilledIcon = Icons.star_half,
@@ -211,6 +263,10 @@ class _AnimatedStarState extends State<AnimatedStar>
   void didUpdateWidget(covariant AnimatedStar oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (widget.animationDuration != oldWidget.animationDuration) {
+      _animationController.duration = widget.animationDuration;
+    }
+
     if (widget.filled != oldWidget.filled ||
         widget.halfFilled != oldWidget.halfFilled) {
       if (widget.filled || widget.halfFilled) {
@@ -227,20 +283,28 @@ class _AnimatedStarState extends State<AnimatedStar>
     super.dispose();
   }
 
+  /// The icon for the star's current state.
+  IconData get _icon {
+    if (widget.filled) return widget.filledIcon;
+    if (widget.halfFilled) return widget.halfFilledIcon;
+    return widget.emptyIcon;
+  }
+
+  /// The color the star animates toward, away from [AnimatedStar.emptyColor].
+  Color get _activeColor => widget.filled
+      ? widget.filledColor
+      : widget.halfFilledColor ?? widget.filledColor;
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
         return Icon(
-          widget.filled
-              ? widget.filledIcon
-              : widget.halfFilled
-                  ? widget.halfFilledIcon
-                  : widget.emptyIcon,
+          _icon,
           color: Color.lerp(
             widget.emptyColor,
-            widget.filledColor,
+            _activeColor,
             _animation.value,
           ),
           size: widget.starSize + 8.0 * _animation.value,

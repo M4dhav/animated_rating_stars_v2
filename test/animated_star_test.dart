@@ -11,6 +11,7 @@ const IconData kEmpty = Icons.favorite_border;
 /// compare unequal on type even when every channel matches.
 const Color kEmptyColor = Color(0xFF0000FF);
 const Color kFilledColor = Color(0xFFFF0000);
+const Color kHalfFilledColor = Color(0xFF00FF00);
 
 void main() {
   /// Pumps a single [AnimatedStar] inside a minimal material app.
@@ -19,6 +20,7 @@ void main() {
     bool filled = false,
     bool halfFilled = false,
     Color filledColor = Colors.amber,
+    Color? halfFilledColor,
     Color emptyColor = Colors.grey,
     double starSize = 30.0,
     Duration animationDuration = const Duration(milliseconds: 300),
@@ -30,6 +32,7 @@ void main() {
             filled: filled,
             halfFilled: halfFilled,
             filledColor: filledColor,
+            halfFilledColor: halfFilledColor,
             emptyColor: emptyColor,
             filledIcon: kFilled,
             halfFilledIcon: kHalfFilled,
@@ -143,6 +146,46 @@ void main() {
       await pumpStar(tester, starSize: 20.0);
       await tester.pumpAndSettle();
       expect(theIcon(tester).size, 20.0);
+    });
+
+    testWidgets('a half star animates to halfFilledColor', (tester) async {
+      await pumpStar(
+        tester,
+        halfFilled: true,
+        emptyColor: kEmptyColor,
+        filledColor: kFilledColor,
+        halfFilledColor: kHalfFilledColor,
+      );
+
+      await tester.pumpAndSettle();
+      expect(theIcon(tester).color, kHalfFilledColor);
+    });
+
+    testWidgets('a half star falls back to filledColor when none is given',
+        (tester) async {
+      await pumpStar(
+        tester,
+        halfFilled: true,
+        emptyColor: kEmptyColor,
+        filledColor: kFilledColor,
+      );
+
+      await tester.pumpAndSettle();
+      expect(theIcon(tester).color, kFilledColor);
+    });
+
+    testWidgets('halfFilledColor does not affect a filled star',
+        (tester) async {
+      await pumpStar(
+        tester,
+        filled: true,
+        emptyColor: kEmptyColor,
+        filledColor: kFilledColor,
+        halfFilledColor: kHalfFilledColor,
+      );
+
+      await tester.pumpAndSettle();
+      expect(theIcon(tester).color, kFilledColor);
     });
 
     testWidgets('honours a custom animation duration', (tester) async {

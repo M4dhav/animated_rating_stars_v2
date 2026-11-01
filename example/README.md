@@ -1,6 +1,6 @@
 # animated_rating_stars_example
 
-Demonstrates how to use the animated_rating_stars plugin.
+Demonstrates how to use the animated_rating_stars_v2 plugin.
 
 ## Getting Started
 

@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import XCTest
 
-@testable import animated_rating_stars
+@testable import animated_rating_stars_v2
 
 // This demonstrates a simple unit test of the Swift portion of this plugin's implementation.
 //
