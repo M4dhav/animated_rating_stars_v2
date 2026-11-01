@@ -84,7 +84,7 @@ class AnimatedRatingStars extends StatefulWidget {
   });
 
   @override
-  _AnimatedRatingStarsState createState() => _AnimatedRatingStarsState();
+  State<AnimatedRatingStars> createState() => _AnimatedRatingStarsState();
 }
 
 class _AnimatedRatingStarsState extends State<AnimatedRatingStars> {
@@ -180,7 +180,7 @@ class AnimatedStar extends StatefulWidget {
   });
 
   @override
-  _AnimatedStarState createState() => _AnimatedStarState();
+  State<AnimatedStar> createState() => _AnimatedStarState();
 }
 
 class _AnimatedStarState extends State<AnimatedStar>

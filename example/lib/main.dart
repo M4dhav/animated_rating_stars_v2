@@ -1,4 +1,4 @@
-import 'package:animated_rating_stars/animated_rating_stars.dart';
+import 'package:animated_rating_stars_v2/animated_rating_stars_v2.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -7,7 +7,7 @@ void main() {
 
 class MyApp extends StatefulWidget {
   /// Constructs a new instance of [MyApp].
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();

@@ -25,11 +25,11 @@
 
 ## Installation
 
-To use this package, add `animated_rating_stars` as a dependency in your `pubspec.yaml` file:
+To use this package, add `animated_rating_stars_v2` as a dependency in your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  animated_rating_stars: ^1.0.1
+  animated_rating_stars_v2: ^1.0.0
 ```
 
 Then, run flutter pub get to fetch the package.
@@ -39,7 +39,7 @@ Then, run flutter pub get to fetch the package.
 Import the package in your Dart code:
 
 ```dart
-import 'package:animated_rating_stars/animated_rating_stars.dart';
+import 'package:animated_rating_stars_v2/animated_rating_stars_v2.dart';
 ```
 
 Now, you can use the AnimatedRatingStars widget in your Flutter app:

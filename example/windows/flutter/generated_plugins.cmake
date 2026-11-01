@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  animated_rating_stars
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

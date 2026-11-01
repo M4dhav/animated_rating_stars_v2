@@ -1,27 +1,47 @@
-// This is a basic Flutter widget test.
+// Widget tests for the example app.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// These cover the wiring between the demo app and the rating widget: that the
+// app renders a rating bar, and that tapping a star updates the label the app
+// draws above it.
 
-import 'package:flutter/material.dart';
+import 'package:animated_rating_stars_v2/animated_rating_stars_v2.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:animated_rating_stars_example/main.dart';
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('shows a rating bar and its current value', (tester) async {
     await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
 
-    // Verify that platform version is retrieved.
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) => widget is Text &&
-                           widget.data!.startsWith('Running on:'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byType(AnimatedRatingStars), findsOneWidget);
+    expect(find.byType(AnimatedStar), findsNWidgets(5));
+    expect(find.text('Rating: 2.5'), findsOneWidget);
+  });
+
+  testWidgets('updates the label when a star is tapped', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(AnimatedStar).at(3));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rating: 4.0'), findsOneWidget);
+    expect(find.text('Rating: 2.5'), findsNothing);
+  });
+
+  testWidgets('toggles a half star when the same star is tapped twice',
+      (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // The example enables interactiveTooltips, so a second tap halves it.
+    await tester.tap(find.byType(AnimatedStar).at(3));
+    await tester.pumpAndSettle();
+    expect(find.text('Rating: 4.0'), findsOneWidget);
+
+    await tester.tap(find.byType(AnimatedStar).at(3));
+    await tester.pumpAndSettle();
+    expect(find.text('Rating: 3.5'), findsOneWidget);
   });
 }
